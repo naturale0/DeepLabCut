@@ -75,14 +75,15 @@ def get_optimizer(loss_op, cfg):
 
     return learning_rate, train_op
 
-def train(config_yaml,displayiters,saveiters,maxiters,max_to_keep=5):
-    start_path=os.getcwd()
+
+def train(config_yaml, displayiters, saveiters, maxiters, max_to_keep=5):
+    start_path = os.getcwd()
     os.chdir(str(Path(config_yaml).parents[0])) #switch to folder of config_yaml (for logging)
     setup_logging()
-    
+
     cfg = load_config(config_yaml)
-    cfg['batch_size']=1 #in case this was edited for analysis.
-    
+    cfg['batch_size'] = 1  # in case this was edited for analysis.
+
     dataset = create_dataset(cfg)
     batch_spec = get_batch_spec(cfg)
     batch, enqueue_op, placeholders = setup_preloading(batch_spec)
@@ -107,26 +108,26 @@ def train(config_yaml,displayiters,saveiters,maxiters,max_to_keep=5):
 
     # Restore variables from disk.
     restorer.restore(sess, cfg.init_weights)
-    if maxiters==None:
+    if maxiters == None:
         max_iter = int(cfg.multi_step[-1][1])
     else:
-        max_iter = min(int(cfg.multi_step[-1][1]),int(maxiters))
+        max_iter = min(int(cfg.multi_step[-1][1]), int(maxiters))
         #display_iters = max(1,int(displayiters))
-        print("Max_iters overwritten as",max_iter)
-    
-    if displayiters==None:
-        display_iters = max(1,int(cfg.display_iters))
+        print("Max_iters overwritten as", max_iter)
+
+    if displayiters == None:
+        display_iters = max(1, int(cfg.display_iters))
     else:
-        display_iters = max(1,int(displayiters))
-        print("Display_iters overwritten as",display_iters)
-    
-    if saveiters==None:
-        save_iters=max(1,int(cfg.save_iters))
-        
+        display_iters = max(1, int(displayiters))
+        print("Display_iters overwritten as", display_iters)
+
+    if saveiters == None:
+        save_iters = max(1, int(cfg.save_iters))
+
     else:
-        save_iters=max(1,int(saveiters))
-        print("Save_iters overwritten as",save_iters)
-        
+        save_iters = max(1, int(saveiters))
+        print("Save_iters overwritten as", save_iters)
+
     cum_loss = 0.0
     lr_gen = LearningRate(cfg)
 
@@ -143,9 +144,14 @@ def train(config_yaml,displayiters,saveiters,maxiters,max_to_keep=5):
         cum_loss += loss_val
         train_writer.add_summary(summary, it)
 
-        if it % display_iters == 0 and it>0:
+        if it % display_iters == 0 and it > 0:
             average_loss = cum_loss / display_iters
             cum_loss = 0.0
+
+            #if evaluate:
+            #    logging.info("iteration: {} loss: {} lr: {} train_err: {}, test_err: {}"
+            #             .format(it, "{0:.4f}".format(average_loss), current_lr))
+            #else:
             logging.info("iteration: {} loss: {} lr: {}"
                          .format(it, "{0:.4f}".format(average_loss), current_lr))
             lrf.write("{}, {:.5f}, {}\n".format(it, average_loss, current_lr))

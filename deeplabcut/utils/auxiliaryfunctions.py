@@ -62,7 +62,7 @@ def create_config_template():
     ruamelFile = ruamel.yaml.YAML()
     cfg_file = ruamelFile.load(yaml_str)
     return(cfg_file,ruamelFile)
-    
+
 def read_config(configname):
     """
     Reads structured config file
@@ -92,7 +92,7 @@ def write_config(configname,cfg):
         cfg_file,ruamelFile = create_config_template()
         for key in cfg.keys():
             cfg_file[key]=cfg[key]
-            
+
         ruamelFile.dump(cfg_file, cf)
 
 def read_plainconfig(filename = "pose_cfg.yaml"):
@@ -105,7 +105,7 @@ def write_plainconfig(configname,cfg):
     with open(str(configname), 'w') as ymlfile:
                 yaml.dump(cfg, ymlfile,default_flow_style=False)
 
-def attempttomakefolder(foldername,recursive=False):
+def attempttomakefolder(foldername, recursive=False):
     ''' Attempts to create a folder with specified name. Does nothing if it already exists. '''
 
     try:
@@ -128,7 +128,7 @@ def Getlistofvideos(videos,videotype):
         """
         Analyzes all the videos in the directory.
         """
-        
+
         print("Analyzing all the videos in the directory")
         videofolder= videos[0]
         os.chdir(videofolder)
