@@ -28,7 +28,8 @@ class DraggablePoint:
         self.press = None
         self.background = None
         self.final_point = (0.0, 0.0)
-        self.annot = self.point.axes.annotate("", xy=(0,0), xytext=(20,20),textcoords="offset points",bbox=dict(boxstyle="round", fc="w"),arrowprops=dict(arrowstyle="->"))
+        self.annot = self.point.axes.annotate("", xy=(0,0), xytext=(20,20), textcoords="offset points",
+                                              bbox=dict(boxstyle="round", fc="w"), arrowprops=dict(arrowstyle="->"))
         self.annot.set_visible(False)
         self.coords = []
 
@@ -45,10 +46,13 @@ class DraggablePoint:
         """
         Define the event for the button press!
         """
-        if event.inaxes != self.point.axes: return
-        if DraggablePoint.lock is not None: return
+        if event.inaxes != self.point.axes:
+            return
+        if DraggablePoint.lock is not None:
+            return
         contains, attrd = self.point.contains(event)
-        if not contains: return
+        if not contains:
+            return
         if event.button == 1:
             """
             This button press corresponds to the left click
@@ -78,14 +82,15 @@ class DraggablePoint:
                 self.coords.append(self.final_point)
                 self.point.figure.canvas.draw()
 
-        
+
     def on_motion(self, event):
         """
         During the drag!
         """
         if DraggablePoint.lock is not self:
             return
-        if event.inaxes != self.point.axes: return
+        if event.inaxes != self.point.axes:
+            return
 
         if event.button == 1:
             self.point.center, xpress, ypress = self.press
@@ -109,7 +114,7 @@ class DraggablePoint:
             self.point.set_animated(False)
             self.background = None
             self.point.figure.canvas.draw()
-            self.final_point = (event.xdata, event.ydata,self.individual_names,self.bodyParts)
+            self.final_point = (event.xdata, event.ydata, self.individual_names, self.bodyParts)
             self.coords.append(self.final_point)
 
     def on_hover(self,event):
@@ -121,9 +126,9 @@ class DraggablePoint:
         if event.inaxes == self.point.axes:
             contains, attrd = self.point.contains(event)
             if contains:
-                self.annot.xy = (self.point.center[0],self.point.center[1])
+                self.annot.xy = (self.point.center[0], self.point.center[1])
 #                text = str(self.bodyParts)
-                text = str(self.individual_names+','+self.bodyParts)
+                text = str(self.individual_names + ',' + self.bodyParts)
                 self.annot.set_text(text)
                 self.annot.get_bbox_patch().set_alpha(0.4)
                 self.annot.set_visible(True)

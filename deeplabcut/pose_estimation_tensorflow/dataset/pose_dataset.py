@@ -31,29 +31,30 @@ def mirror_joints_map(all_joints, num_joints):
         res[pair[1]] = pair[0]
     return res
 
-def CropImage(joints,im,Xlabel,Ylabel,cfg):
+
+def CropImage(joints, im, Xlabel, Ylabel, cfg):
     ''' Randomly cropping image around xlabel,ylabel taking into account size of image.'''
-    
-    widthforward=int(cfg["minsize"]+np.random.randint(cfg["rightwidth"]))
-    widthback=int(cfg["minsize"]+np.random.randint(cfg["leftwidth"]))
-    hup=int(cfg["minsize"]+np.random.randint(cfg["topheight"]))
-    hdown=int(cfg["minsize"]+np.random.randint(cfg["bottomheight"]))
-    Xstart=max(0,int(Xlabel-widthback))
-    Xstop=min(np.shape(im)[1]-1,int(Xlabel+widthforward))
-    Ystart=max(0,int(Ylabel-hdown))
-    Ystop=min(np.shape(im)[0]-1,int(Ylabel+hup))
-    
+
+    widthforward = int(cfg["minsize"]+np.random.randint(cfg["rightwidth"]))
+    widthback = int(cfg["minsize"]+np.random.randint(cfg["leftwidth"]))
+    hup = int(cfg["minsize"]+np.random.randint(cfg["topheight"]))
+    hdown = int(cfg["minsize"]+np.random.randint(cfg["bottomheight"]))
+    Xstart = max(0,int(Xlabel-widthback))
+    Xstop = min(np.shape(im)[1]-1,int(Xlabel+widthforward))
+    Ystart = max(0,int(Ylabel-hdown))
+    Ystop = min(np.shape(im)[0]-1,int(Ylabel+hup))
+
                     #    joints[0,:, 1] -= x0
                 #    joints[0,:, 2] -= y0
     #Xstart=int(np.max([0,int(Xlabel)-widthback]))
     #Xstop=int(np.min([np.shape(im)[1]-1,int(Xlabel)+widthforward]))
-    #Ystart=int(np.max([0,int(Ylabel)-hdown])) 
+    #Ystart=int(np.max([0,int(Ylabel)-hdown]))
     #Ystop=int(np.min([np.shape(im)[0]-1,int(Ylabel)+hup]))
     joints[0,:,1]-=Xstart
     joints[0,:,2]-=Ystart
-    
+
     inbounds=np.where((joints[0,:,1]>0)*(joints[0,:,1]<np.shape(im)[1])*(joints[0,:,2]>0)*(joints[0,:,2]<np.shape(im)[0]))[0]
-    
+
     return joints[:,inbounds,:],im[Ystart:Ystop+1,Xstart:Xstop+1,:]
 
 
@@ -199,11 +200,11 @@ class PoseDataset:
         return True
 
     def make_batch(self, data_item, scale, mirror):
-        
+
         im_file = data_item.im_path
         logging.debug('image %s', im_file)
         logging.debug('mirror %r', mirror)
-        
+
         #print(im_file, os.getcwd())
         #print(self.cfg.project_path)
         image = imread(os.path.join(self.cfg.project_path,im_file), mode='RGB')
@@ -218,7 +219,7 @@ class PoseDataset:
                 # draw random crop dimensions & subtract joint points
                 #print(joints,j,'ahah')
                 joints,image=CropImage(joints,image,joints[0,j,1],joints[0,j,2],self.cfg)
-                
+
                 #if self.has_gt:
                 #    joints[0,:, 1] -= x0
                 #    joints[0,:, 2] -= y0
@@ -232,7 +233,7 @@ class PoseDataset:
                 '''
             else:
                 pass #no cropping!
-                
+
         img = imresize(image, scale) if scale != 1 else image
         scaled_img_size = arr(img.shape[0:2])
 

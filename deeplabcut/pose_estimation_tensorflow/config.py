@@ -15,7 +15,8 @@ cfg = default_config.cfg
 
 
 def _merge_a_into_b(a, b):
-    """Merge config dictionary a into config dictionary b, clobbering the
+    """
+    Merge config dictionary a into config dictionary b, clobbering the
     options in b whenever they are also specified in a.
     """
     if type(a) is not edict:
@@ -36,23 +37,25 @@ def _merge_a_into_b(a, b):
         else:
             b[k] = v
 
+
 def cfg_from_file(filename):
-    """Load a config from file filename and merge it into the default options.
+    """
+    Load a config from file filename and merge it into the default options.
     """
     with open(filename, 'r') as f:
         yaml_cfg = edict(yaml.load(f))
 
     #Update the snapshot path to the corresponding path!
-    trainpath=str(filename).split('pose_cfg.yaml')[0]
-    yaml_cfg['snapshot_prefix']=trainpath+'snapshot'
+    trainpath = str(filename).split('pose_cfg.yaml')[0]
+    yaml_cfg['snapshot_prefix'] = trainpath+'snapshot'
     #the default is: "./snapshot"
     _merge_a_into_b(yaml_cfg, cfg)
 
-    logging.info("Config:\n"+pprint.pformat(cfg))
+    logging.info("Config:\n" + pprint.pformat(cfg))
     return cfg
 
 
-def load_config(filename = "pose_cfg.yaml"):
+def load_config(filename="pose_cfg.yaml"):
     return cfg_from_file(filename)
 
 if __name__ == "__main__":

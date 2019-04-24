@@ -8,7 +8,7 @@ M Mathis, mackenzie@post.harvard.edu
 """
 
 
-def add_new_videos(config,videos,copy_videos=False,coords=None):
+def add_new_videos(config, videos, copy_videos=False, coords=None):
     """
     Add new videos to the config file at any stage of the project.
 
@@ -29,7 +29,7 @@ def add_new_videos(config,videos,copy_videos=False,coords=None):
     --------
     Video will be added, with cropping dimenions according to the frame dimensinos of mouse5.avi
     >>> deeplabcut.add_new_videos('/home/project/reaching-task-Tanmay-2018-08-23/config.yaml',['/data/videos/mouse5.avi'])
-    
+
     Video will be added, with cropping dimenions [0,100,0,200]
     >>> deeplabcut.add_new_videos('/home/project/reaching-task-Tanmay-2018-08-23/config.yaml',['/data/videos/mouse5.avi'],copy_videos=False,coords=[[0,100,0,200]])
 
@@ -58,16 +58,16 @@ def add_new_videos(config,videos,copy_videos=False,coords=None):
         """
         Creates directory under data & perhaps copies videos (to /video)
         """
-        p.mkdir(parents = True, exist_ok = True)
-    
+        p.mkdir(parents=True, exist_ok=True)
+
     destinations = [video_path.joinpath(vp.name) for vp in videos]
-    if copy_videos==True:
+    if copy_videos == True:
         for src, dst in zip(videos, destinations):
             if dst.exists():
                 pass
             else:
                 print("Copying the videos")
-                shutil.copy(os.fspath(src),os.fspath(dst)) 
+                shutil.copy(os.fspath(src), os.fspath(dst))
     else:
         for src, dst in zip(videos, destinations):
             if dst.exists():
@@ -77,11 +77,11 @@ def add_new_videos(config,videos,copy_videos=False,coords=None):
                 src = str(src)
                 dst = str(dst)
                 os.symlink(src, dst)
-    
-    if copy_videos==True:
-        videos=destinations # in this case the *new* location should be added to the config file
+
+    if copy_videos == True:
+        videos = destinations # in this case the *new* location should be added to the config file
     # adds the video list to the config.yaml file
-    for idx,video in enumerate(videos):
+    for idx, video in enumerate(videos):
         try:
            video_path = os.path.realpath(video)
         except:

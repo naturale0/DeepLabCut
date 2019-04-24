@@ -26,15 +26,16 @@ from deeplabcut.utils import auxiliaryfunctions, conversioncode
 
 #matplotlib.use('Agg')
 
+# change to easy-to-read function name?
 def comparevideolistsanddatafolders(config):
     """
-    Auxiliary function that compares the folders in labeled-data and the ones listed under video_sets (in the config file). 
-    
+    Auxiliary function that compares the folders in labeled-data and the ones listed under video_sets (in the config file).
+
     Parameter
     ----------
-    config : string	
+    config : string
         String containing the full path of the config file in the project.
-        
+
     """
     cfg = auxiliaryfunctions.read_config(config)
     videos = cfg['video_sets'].keys()
@@ -58,25 +59,25 @@ def comparevideolistsanddatafolders(config):
             print(vn, " is missing in config file!")
 
 
-def adddatasetstovideolistandviceversa(config,prefix,width,height,suffix='.mp4'):
+def adddatasetstovideolistandviceversa(config, prefix, width, height, suffix='.mp4'):
     """
-    First run comparevideolistsanddatafolders(config) to compare the folders in labeled-data and the ones listed under video_sets (in the config file). 
+    First run comparevideolistsanddatafolders(config) to compare the folders in labeled-data and the ones listed under video_sets (in the config file).
     If you detect differences this function can be used to maker sure each folder has a video entry & vice versa.
-    
+
     It corrects this problem in the following way:
-    
+
     If a folder in labeled-data does not contain a video entry in the config file then the prefix path will be added in front of the name of the labeled-data folder and combined
     with the suffix variable as an ending. Width and height will be added as cropping variables as passed on. TODO: This should be written from the actual images!
-    
+
     If a video entry in the config file does not contain a folder in labeled-data, then the entry is removed.
-    
+
     Handle with care!
-    
+
     Parameter
     ----------
-    config : string	
+    config : string
         String containing the full path of the config file in the project.
-        
+
     """
     cfg = auxiliaryfunctions.read_config(config)
     videos = cfg['video_sets'].keys()
@@ -87,7 +88,7 @@ def adddatasetstovideolistandviceversa(config,prefix,width,height,suffix='.mp4')
     print("Config file contains:", len(video_names))
     print("Labeled-data contains:", len(alldatafolders))
 
-    toberemoved=[]
+    toberemoved = []
     for vn in video_names:
         if vn in alldatafolders:
             pass
@@ -110,63 +111,64 @@ def adddatasetstovideolistandviceversa(config,prefix,width,height,suffix='.mp4')
         else:
             print(vn, " is missing in config file >> adding it!")
             #cfg['video_sets'][vn]
-            cfg['video_sets'].update({os.path.join(prefix,vn+suffix) : {'crop': ', '.join(map(str, [0, width, 0, height]))}})
+            cfg['video_sets'].update({os.path.join(prefix, vn + suffix) : {'crop': ', '.join(map(str, [0, width, 0, height]))}})
 
-    auxiliaryfunctions.write_config(config,cfg)
+    auxiliaryfunctions.write_config(config, cfg)
 
 
 def dropduplicatesinannotatinfiles(config):
     """
-    
+
     Drop duplicate entries (of images) in annotation files (this should no longer happen, but might be useful).
-    
+
     Parameter
     ----------
-    config : string	
+    config : string
         String containing the full path of the config file in the project.
-        
+
     """
     cfg = auxiliaryfunctions.read_config(config)
     videos = cfg['video_sets'].keys()
     video_names = [Path(i).stem for i in videos]
-    folders = [Path(config).parent / 'labeled-data' /Path(i) for i in video_names]
+    folders = [Path(config).parent / 'labeled-data' / Path(i) for i in video_names]
 
     for folder in folders:
         try:
-            fn=os.path.join(str(folder),'CollectedData_' + cfg['scorer'] + '.h5')
+            fn = os.path.join(str(folder),'CollectedData_' + cfg['scorer'] + '.h5')
             DC = pd.read_hdf(fn, 'df_with_missing')
-            numimages=len(DC.index)
+            numimages = len(DC.index)
             DC = DC[~DC.index.duplicated(keep='first')]
-            if len(DC.index)<numimages:
-                print("Dropped",numimages-len(DC.index))
+            if len(DC.index) < numimages:
+                print("Dropped", numimages-len(DC.index))
                 DC.to_hdf(fn, key='df_with_missing', mode='w')
-                DC.to_csv(os.path.join(str(folder),'CollectedData_'+ cfg['scorer']+".csv"))
+                DC.to_csv(os.path.join(str(folder), 'CollectedData_' + cfg['scorer'] + ".csv"))
 
         except FileNotFoundError:
             print("Attention:", folder, "does not appear to have labeled data!")
+
 
 def dropannotationfileentriesduetodeletedimages(config):
     """
     Drop entries for all deleted images in annotation files, i.e. for folders of the type: /labeled-data/*folder*/CollectedData_*scorer*.h5
     Will be carried out iteratively for all *folders* in labeled-data.
-    
+
     Parameter
     ----------
-    config : string	
+    config : string
         String containing the full path of the config file in the project.
-        
+
     """
     cfg = auxiliaryfunctions.read_config(config)
     videos = cfg['video_sets'].keys()
     video_names = [Path(i).stem for i in videos]
-    folders = [Path(config).parent / 'labeled-data' /Path(i) for i in video_names]
+    folders = [Path(config).parent / 'labeled-data' / Path(i) for i in video_names]
 
     for folder in folders:
-        fn=os.path.join(str(folder),'CollectedData_' + cfg['scorer'] + '.h5')
+        fn=os.path.join(str(folder), 'CollectedData_' + cfg['scorer'] + '.h5')
         DC = pd.read_hdf(fn, 'df_with_missing')
-        dropped=False
+        dropped = False
         for imagename in DC.index:
-            if os.path.isfile(os.path.join(cfg['project_path'],imagename)):
+            if os.path.isfile(os.path.join(cfg['project_path'], imagename)):
                 pass
             else:
                 print("Dropping...", imagename)
@@ -174,7 +176,7 @@ def dropannotationfileentriesduetodeletedimages(config):
                 dropped=True
         if dropped==True:
             DC.to_hdf(fn, key='df_with_missing', mode='w')
-            DC.to_csv(os.path.join(str(folder),'CollectedData_'+ cfg['scorer']+".csv"))
+            DC.to_csv(os.path.join(str(folder), 'CollectedData_'+ cfg['scorer'] + ".csv"))
 
 
 def label_frames(config):
@@ -183,7 +185,7 @@ def label_frames(config):
 
     Parameter
     ----------
-    config : string	
+    config : string
         String containing the full path of the config file in the project.
 
     Example
@@ -207,7 +209,7 @@ def get_cmap(n, name='jet'):
     RGB color; the keyword argument name must be a standard mpl colormap name.'''
     return plt.cm.get_cmap(name, n)
 
-def check_labels(config,Labels = ['+','.','x'],scale = 1):
+def check_labels(config, Labels=['+','.','x'], scale=1):
     """
     Double check if the labels were at correct locations and stored in a proper file format.\n
     This creates a new subdirectory for each video under the 'labeled-data' and all the frames are plotted with the labels.\n
@@ -217,12 +219,12 @@ def check_labels(config,Labels = ['+','.','x'],scale = 1):
     ----------
     config : string
         Full path of the config.yaml file as a string.
-        
+
     Labels: List of at least 3 matplotlib markers. The first one will be used to indicate the human ground truth location (Default: +)
 
     scale : float, default =1
-        Change the relative size of the output images. 
-    
+        Change the relative size of the output images.
+
     Example
     --------
     for labeling the frames
@@ -235,67 +237,65 @@ def check_labels(config,Labels = ['+','.','x'],scale = 1):
 
    #plotting parameters:
     cc = 0 # label index / here only 0, for human labeler
-    Colorscheme = get_cmap(len( cfg['bodyparts']),cfg['colormap'])
+    Colorscheme = get_cmap(len(cfg['bodyparts']), cfg['colormap'])
 
     #folders = [Path(config).parent / 'labeled-data' /Path(i) for i in video_names]
-    folders = [os.path.join(cfg['project_path'],'labeled-data',str(Path(i))) for i in video_names]
-    print("Creating images with labels by %s." %cfg['scorer'])
+    folders = [os.path.join(cfg['project_path'], 'labeled-data', str(Path(i))) for i in video_names]
+    print(f"Creating images with labels by {cfg['scorer']}.")
     for folder in folders:
         try:
-            DataCombined = pd.read_hdf(os.path.join(str(folder),'CollectedData_' + cfg['scorer'] + '.h5'), 'df_with_missing')
-            MakeLabeledPlots(folder,DataCombined,cfg,Labels,Colorscheme,cc,scale)
+            DataCombined = pd.read_hdf(os.path.join(str(folder), 'CollectedData_' + cfg['scorer'] + '.h5'), 'df_with_missing')
+            MakeLabeledPlots(folder, DataCombined, cfg, Labels, Colorscheme, cc, scale)
         except FileNotFoundError:
             print("Attention:", folder, "does not appear to have labeled data!")
 
     print("If all the labels are ok, then use the function 'create_training_dataset' to create the training dataset!")
 
-def MakeLabeledPlots(folder,DataCombined,cfg,Labels,Colorscheme,cc,scale):
+def MakeLabeledPlots(folder, DataCombined, cfg, Labels, Colorscheme, cc, scale):
     tmpfolder = str(folder) + '_labeled'
     auxiliaryfunctions.attempttomakefolder(tmpfolder)
     for index, imagename in enumerate(DataCombined.index.values):
-        image = io.imread(os.path.join(cfg['project_path'],imagename))
+        image = io.imread(os.path.join(cfg['project_path'], imagename))
         plt.axis('off')
 
-        if np.ndim(image)==2:
+        if np.ndim(image) == 2:
             h, w = np.shape(image)
         else:
             h, w, nc = np.shape(image)
 
-        plt.figure(
-            frameon=False, figsize=(w * 1. / 100 * scale, h * 1. / 100 * scale))
-        plt.subplots_adjust(
-            left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
+        plt.figure(frameon=False, figsize=(w * 1./100 * scale, h * 1./100 * scale))
+        plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
 
         plt.imshow(image, 'gray')
-        if index==0:
-            print("They are stored in the following folder: %s." %tmpfolder) #folder)
+        if index == 0:
+            print(f"They are stored in the following folder: {tmpfolder}.") #folder)
 
         for c, bp in enumerate(cfg['bodyparts']):
-            plt.plot(
-                DataCombined[cfg['scorer']][bp]['x'].values[index],
-                DataCombined[cfg['scorer']][bp]['y'].values[index],
-                Labels[cc],
-                color=Colorscheme(c),
-                alpha=cfg['alphavalue'],
-                ms=cfg['dotsize'])
+            plt.plot(DataCombined[cfg['scorer']][bp]['x'].values[index],
+                     DataCombined[cfg['scorer']][bp]['y'].values[index],
+                     Labels[cc],
+                     color=Colorscheme(c),
+                     alpha=cfg['alphavalue'],
+                     ms=cfg['dotsize'])
 
         plt.xlim(0, w)
         plt.ylim(0, h)
         plt.axis('off')
-        plt.subplots_adjust(
-            left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
+        plt.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=0, hspace=0)
         plt.gca().invert_yaxis()
 
         plt.savefig(str(Path(tmpfolder)/imagename.split(os.sep)[-1])) #create file name
         plt.close("all")
-    
+
+
 def boxitintoacell(joints):
     ''' Auxiliary function for creating matfile.'''
     outer = np.array([[None]], dtype=object)
     outer[0, 0] = np.array(joints, dtype='int64')
     return outer
 
-def MakeTrain_pose_yaml(itemstochange,saveasconfigfile,defaultconfigfile):
+
+def MakeTrain_pose_yaml(itemstochange, saveasconfigfile, defaultconfigfile):
     raw = open(defaultconfigfile).read()
     docs = []
     for raw_doc in raw.split('\n---'):
@@ -320,83 +320,83 @@ def MakeTest_pose_yaml(dictionary, keys2save, saveasfile):
     with open(saveasfile, "w") as f:
         yaml.dump(dict_test, f)
 
-def merge_annotateddatasets(cfg,project_path,trainingsetfolder_full,windows2linux):
+def merge_annotateddatasets(cfg, project_path, trainingsetfolder_full, windows2linux):
     """
     Merges all the h5 files for all labeled-datasets (from individual videos).
-    This is a bit of a mess because of cross platform compatablity. 
-    
+    This is a bit of a mess because of cross platform compatablity.
+
     Within platform comp. is straightforward. But if someone labels on windows and wants to train on a unix cluster or colab...
     """
-    AnnotationData=None
-    data_path = Path(os.path.join(project_path , 'labeled-data'))
+    AnnotationData = None
+    data_path = Path(os.path.join(project_path, 'labeled-data'))
     videos = cfg['video_sets'].keys()
     video_names = [Path(i).stem for i in videos]
     for i in video_names:
         try:
-            data = pd.read_hdf((str(data_path / Path(i))+'/CollectedData_'+cfg['scorer']+'.h5'),'df_with_missing')
+            data = pd.read_hdf((str(data_path / Path(i)) + '/CollectedData_' + cfg['scorer'] + '.h5'), 'df_with_missing')
             if AnnotationData is None:
-                AnnotationData=data
+                AnnotationData = data
             else:
-                AnnotationData=pd.concat([AnnotationData, data])
+                AnnotationData = pd.concat([AnnotationData, data])
 
         except FileNotFoundError:
-            print((str(data_path / Path(i))+'/CollectedData_'+cfg['scorer']+'.h5'), " not found (perhaps not annotated)")
+            print((str(data_path / Path(i)) + '/CollectedData_' + cfg['scorer'] + '.h5'), " not found (perhaps not annotated)")
 
     if AnnotationData is None:
         print("Annotation data was not found by splitting video paths (from config['video_sets']). An alternative route is taken...")
-        AnnotationData=conversioncode.merge_windowsannotationdataONlinuxsystem(cfg)
+        AnnotationData = conversioncode.merge_windowsannotationdataONlinuxsystem(cfg)
     if AnnotationData is None:
         print("No data was found!")
-        windowspath=False
+        windowspath = False
     else:
-        windowspath=len((AnnotationData.index[0]).split('\\'))>1 #true if the first element is in windows path format
-    
+        windowspath = len((AnnotationData.index[0]).split('\\')) > 1 #true if the first element is in windows path format
+
     # Let's check if the code is *not* run on windows (Source: #https://stackoverflow.com/questions/1325581/how-do-i-check-if-im-running-on-windows-in-python)
     # but the paths are in windows format...
-    if os.name != 'nt' and windowspath and not windows2linux: 
+    if os.name != 'nt' and windowspath and not windows2linux:
         print("It appears that the images were labeled on a Windows system, but you are currently trying to create a training set on a Unix system. \n In this case the paths should be converted. Do you want to proceed with the conversion?")
         askuser = input("yes/no")
     else:
-        askuser='no'
-        
-    filename=str(str(trainingsetfolder_full)+'/'+'/CollectedData_'+cfg['scorer'])
+        askuser = 'no'
+
+    filename = str(str(trainingsetfolder_full) + '/' + '/CollectedData_' + cfg['scorer'])
     if windows2linux or askuser=='yes' or askuser=='y' or askuser=='Ja': #convert windows path in pandas array \\ to unix / !
-        AnnotationData=conversioncode.convertpaths_to_unixstyle(AnnotationData,filename,cfg)
+        AnnotationData=conversioncode.convertpaths_to_unixstyle(AnnotationData, filename, cfg)
         print("Annotation data converted to unix format...")
     else: #store as is
         AnnotationData.to_hdf(filename+'.h5', key='df_with_missing', mode='w')
         AnnotationData.to_csv(filename+'.csv') #human readable.
-        
-    return AnnotationData 
+
+    return AnnotationData
 
 def SplitTrials(trialindex, trainFraction=0.8):
     ''' Split a trial index into train and test sets. Also checks that the trainFraction is a two digit number between 0 an 1. The reason
     is that the folders contain the trainfraction as int(100*trainFraction). '''
     if trainFraction>1 or trainFraction<0:
         print("The training fraction should be a two digit number between 0 and 1; i.e. 0.95. Please change accordingly.")
-        return ([],[])
+        return [], []
 
     if abs(trainFraction-round(trainFraction,2))>0:
         print("The training fraction should be a two digit number between 0 and 1; i.e. 0.95. Please change accordingly.")
-        return ([],[])
+        return [], []
     else:
         trainsetsize = int(len(trialindex) * round(trainFraction,2))
         shuffle = np.random.permutation(trialindex)
         testIndexes = shuffle[trainsetsize:]
         trainIndexes = shuffle[:trainsetsize]
-        
+
         return (trainIndexes, testIndexes)
 
-def mergeandsplit(config,trainindex=0,uniform=True,windows2linux=False):
+def mergeandsplit(config, trainindex=0, uniform=True, windows2linux=False):
     """
-    This function allows additional control over "create_training_dataset". 
-    
-    Merge annotated data sets (from different folders) and split data in a specific way, returns the split variables (train/test indices). 
-    Importantly, this allows one to freeze a split. 
-    
-    One can also either create a uniform split (uniform = True; thereby indexing TrainingFraction in config file) or leave-one-folder out split 
+    This function allows additional control over "create_training_dataset".
+
+    Merge annotated data sets (from different folders) and split data in a specific way, returns the split variables (train/test indices).
+    Importantly, this allows one to freeze a split.
+
+    One can also either create a uniform split (uniform = True; thereby indexing TrainingFraction in config file) or leave-one-folder out split
     by passing the index of the corrensponding video from the config.yaml file as variable trainindex.
-    
+
     Parameter
     ----------
     config : string
@@ -410,9 +410,9 @@ def mergeandsplit(config,trainindex=0,uniform=True,windows2linux=False):
         Perform uniform split (disregarding folder structure in labeled data), or (if False) leave one folder out.
 
     windows2linux: bool.
-        The annotation files contain path formated according to your operating system. If you label on windows 
-        but train & evaluate on a unix system (e.g. ubunt, colab, Mac) set this variable to True to convert the paths. 
-    
+        The annotation files contain path formated according to your operating system. If you label on windows
+        but train & evaluate on a unix system (e.g. ubunt, colab, Mac) set this variable to True to convert the paths.
+
     Examples
     --------
     To create a leave-one-folder-out model:
@@ -420,36 +420,36 @@ def mergeandsplit(config,trainindex=0,uniform=True,windows2linux=False):
     returns the indices for the first video folder (as defined in config file) as testIndexes and all others as trainIndexes.
     You can then create the training set by calling (e.g. defining it as Shuffle 3):
     >>> deeplabcut.create_training_dataset(config,Shuffles=[3],trainIndexes=trainIndexes,testIndexes=testIndexes)
-    
+
     To freeze a (uniform) split:
     >>> trainIndexes, testIndexes=deeplabcut.mergeandsplit(config,trainindex=0,uniform=True)
     You can then create two model instances that have the identical trainingset. Thereby you can assess the role of various parameters on the performance of DLC.
-    
+
     >>> deeplabcut.create_training_dataset(config,Shuffles=[0],trainIndexes=trainIndexes,testIndexes=testIndexes)
     >>> deeplabcut.create_training_dataset(config,Shuffles=[1],trainIndexes=trainIndexes,testIndexes=testIndexes)
     --------
-    
+
     """
-    
+
     # Loading metadata from config file:
     cfg = auxiliaryfunctions.read_config(config)
     scorer = cfg['scorer']
     project_path = cfg['project_path']
     # Create path for training sets & store data there
     trainingsetfolder = auxiliaryfunctions.GetTrainingSetFolder(cfg) #Path concatenation OS platform independent
-    auxiliaryfunctions.attempttomakefolder(Path(os.path.join(project_path,str(trainingsetfolder))),recursive=True)
-    fn=os.path.join(project_path,trainingsetfolder,'CollectedData_'+cfg['scorer'])
-    
+    auxiliaryfunctions.attempttomakefolder(Path(os.path.join(project_path, str(trainingsetfolder))), recursive=True)
+    fn = os.path.join(project_path,trainingsetfolder, 'CollectedData_' + cfg['scorer'])
+
     try:
-        Data= pd.read_hdf(fn, 'df_with_missing')
+        Data = pd.read_hdf(fn, 'df_with_missing')
     except FileNotFoundError:
-        Data = merge_annotateddatasets(cfg,project_path,Path(os.path.join(project_path,trainingsetfolder)),windows2linux=windows2linux)
-    
+        Data = merge_annotateddatasets(cfg, project_path, Path(os.path.join(project_path, trainingsetfolder)), windows2linux=windows2linux)
+
     Data = Data[scorer] #extract labeled data
-    
-    if uniform==True:
+
+    if uniform == True:
         TrainingFraction = cfg['TrainingFraction']
-        trainFraction=TrainingFraction[trainindex]
+        trainFraction = TrainingFraction[trainindex]
         trainIndexes, testIndexes = SplitTrials(range(len(Data.index)), trainFraction)
     else: #leave one folder out split
         videos = cfg['video_sets'].keys()
@@ -458,20 +458,20 @@ def mergeandsplit(config,trainindex=0,uniform=True,windows2linux=False):
         trainIndexes, testIndexes=[],[]
         for index,name in enumerate(Data.index):
             #print(index,name.split(os.sep)[1])
-            if test_video_name==name.split(os.sep)[1]: #this is the video name
+            if test_video_name == name.split(os.sep)[1]: #this is the video name
                 #print(name,test_video_name)
                 testIndexes.append(index)
             else:
                 trainIndexes.append(index)
-                
+
     return trainIndexes, testIndexes
 
 
-def create_training_dataset(config,num_shuffles=1,Shuffles=None,windows2linux=False,trainIndexes=None,testIndexes=None):
+def create_training_dataset(config, num_shuffles=1, Shuffles=None, windows2linux=False, trainIndexes=None, testIndexes=None):
     """
     Creates a training dataset. Labels from all the extracted frames are merged into a single .h5 file.\n
     Only the videos included in the config file are used to create this dataset.\n
-    
+
     [OPTIONAL] Use the function 'add_new_video' at any stage of the project to add more videos to the project.
 
     Parameter
@@ -486,9 +486,9 @@ def create_training_dataset(config,num_shuffles=1,Shuffles=None,windows2linux=Fa
         Alternatively the user can also give a list of shuffles (integers!).
 
     windows2linux: bool.
-        The annotation files contain path formated according to your operating system. If you label on windows 
-        but train & evaluate on a unix system (e.g. ubunt, colab, Mac) set this variable to True to convert the paths. 
-    
+        The annotation files contain path formated according to your operating system. If you label on windows
+        but train & evaluate on a unix system (e.g. ubunt, colab, Mac) set this variable to True to convert the paths.
+
     Example
     --------
     >>> deeplabcut.create_training_dataset('/analysis/project/reaching-task/config.yaml',num_shuffles=1)
@@ -507,21 +507,21 @@ def create_training_dataset(config,num_shuffles=1,Shuffles=None,windows2linux=Fa
     project_path = cfg['project_path']
     # Create path for training sets & store data there
     trainingsetfolder = auxiliaryfunctions.GetTrainingSetFolder(cfg) #Path concatenation OS platform independent
-    auxiliaryfunctions.attempttomakefolder(Path(os.path.join(project_path,str(trainingsetfolder))),recursive=True)
-    
-    Data = merge_annotateddatasets(cfg,project_path,Path(os.path.join(project_path,trainingsetfolder)),windows2linux)
+    auxiliaryfunctions.attempttomakefolder(Path(os.path.join(project_path, str(trainingsetfolder))), recursive=True)
+
+    Data = merge_annotateddatasets(cfg,project_path, Path(os.path.join(project_path, trainingsetfolder)), windows2linux)
     Data = Data[scorer] #extract labeled data
 
     #set model type. we will allow more in the future.
-    if cfg['resnet']==50:
+    if cfg['resnet'] == 50:
         net_type ='resnet_'+str(cfg['resnet'])
         resnet_path = str(Path(deeplabcut.__file__).parents[0] / 'pose_estimation_tensorflow/models/pretrained/resnet_v1_50.ckpt')
-    elif cfg['resnet']==101:
+    elif cfg['resnet'] == 101:
         net_type ='resnet_'+str(cfg['resnet'])
         resnet_path = str(Path(deeplabcut.__file__).parents[0] / 'pose_estimation_tensorflow/models/pretrained/resnet_v1_101.ckpt')
     else:
         print("Currently only ResNet 50 or 101 supported, please change 'resnet' entry in config.yaml!")
-        num_shuffles=-1 #thus the loop below is empty...
+        num_shuffles = -1 #thus the loop below is empty...
 
     if not Path(resnet_path).is_file():
         """
@@ -533,10 +533,10 @@ def create_training_dataset(config,num_shuffles=1,Shuffles=None,windows2linux=Fa
         subprocess.call("download.sh", shell=True)
         os.chdir(start)
 
-    if Shuffles==None:
-        Shuffles=range(1,num_shuffles+1,1)
+    if Shuffles == None:
+        Shuffles = range(1, num_shuffles+1, 1)
     else:
-        Shuffles=[i for i in Shuffles if isinstance(i,int)]
+        Shuffles=[i for i in Shuffles if isinstance(i, int)]
 
     bodyparts = cfg['bodyparts']
     TrainingFraction = cfg['TrainingFraction']
@@ -546,8 +546,8 @@ def create_training_dataset(config,num_shuffles=1,Shuffles=None,windows2linux=Fa
             if trainIndexes is None and testIndexes is None:
                 trainIndexes, testIndexes = SplitTrials(range(len(Data.index)), trainFraction)
             else:
-                print("You passed a split with the following fraction:", len(trainIndexes)*1./(len(testIndexes)+len(trainIndexes))*100)
-            
+                print("You passed a split with the following fraction:", len(trainIndexes) * 1./(len(testIndexes) + len(trainIndexes)) * 100)
+
             ####################################################
             # Generating data structure with labeled information & frame metadata (for deep cut)
             ####################################################
@@ -558,10 +558,10 @@ def create_training_dataset(config,num_shuffles=1,Shuffles=None,windows2linux=Fa
                 H = {}
                 # load image to get dimensions:
                 filename = Data.index[jj]
-                im = io.imread(os.path.join(cfg['project_path'],filename))
+                im = io.imread(os.path.join(cfg['project_path'], filename))
                 H['image'] = filename
 
-                if np.ndim(im)==3:
+                if np.ndim(im) == 3:
                     H['size'] = np.array(
                         [np.shape(im)[2],
                          np.shape(im)[0],
@@ -570,60 +570,54 @@ def create_training_dataset(config,num_shuffles=1,Shuffles=None,windows2linux=Fa
                     # print "Grayscale!"
                     H['size'] = np.array([1, np.shape(im)[0], np.shape(im)[1]])
 
-                indexjoints=0
-                joints=np.zeros((len(bodyparts),3))*np.nan
+                indexjoints = 0
+                joints = np.zeros((len(bodyparts), 3)) * np.nan
                 for bpindex,bodypart in enumerate(bodyparts):
                     if Data[bodypart]['x'][jj]<np.shape(im)[1] and Data[bodypart]['y'][jj]<np.shape(im)[0]: #are labels in image?
-                        joints[indexjoints,0]=int(bpindex)
-                        joints[indexjoints,1]=Data[bodypart]['x'][jj]
-                        joints[indexjoints,2]=Data[bodypart]['y'][jj]
-                        indexjoints+=1
+                        joints[indexjoints,0] = int(bpindex)
+                        joints[indexjoints,1] = Data[bodypart]['x'][jj]
+                        joints[indexjoints,2] = Data[bodypart]['y'][jj]
+                        indexjoints += 1
 
-                joints = joints[np.where(
-                    np.prod(np.isfinite(joints),
-                            1))[0], :]  # drop NaN, i.e. lines for missing body parts
+                joints = joints[np.where(np.prod(np.isfinite(joints), 1))[0], :]  # drop NaN, i.e. lines for missing body parts
 
-                assert (np.prod(np.array(joints[:, 2]) < np.shape(im)[0])
-                        )  # y coordinate within image?
-                assert (np.prod(np.array(joints[:, 1]) < np.shape(im)[1])
-                        )  # x coordinate within image?
+                assert (np.prod(np.array(joints[:, 2]) < np.shape(im)[0]))  # y coordinate within image?
+                assert (np.prod(np.array(joints[:, 1]) < np.shape(im)[1]))  # x coordinate within image?
 
                 H['joints'] = np.array(joints, dtype=int)
-                if np.size(joints)>0: #exclude images without labels
-                        data.append(H)
+                if np.size(joints) > 0: #exclude images without labels
+                    data.append(H)
 
-            if len(trainIndexes)>0:
-                datafilename,metadatafilename=auxiliaryfunctions.GetDataandMetaDataFilenames(trainingsetfolder,trainFraction,shuffle,cfg)
+            if len(trainIndexes) > 0:
+                datafilename, metadatafilename = auxiliaryfunctions.GetDataandMetaDataFilenames(trainingsetfolder, trainFraction, shuffle, cfg)
                 ################################################################################
                 # Saving metadata (Pickle file)
                 ################################################################################
-                auxiliaryfunctions.SaveMetadata(os.path.join(project_path,metadatafilename),data, trainIndexes, testIndexes, trainFraction)
+                auxiliaryfunctions.SaveMetadata(os.path.join(project_path, metadatafilename), data, trainIndexes, testIndexes, trainFraction)
                 ################################################################################
                 # Saving data file (convert to training file for deeper cut (*.mat))
                 ################################################################################
 
                 DTYPE = [('image', 'O'), ('size', 'O'), ('joints', 'O')]
-                MatlabData = np.array(
-                    [(np.array([data[item]['image']], dtype='U'),
-                      np.array([data[item]['size']]),
-                      boxitintoacell(data[item]['joints']))
-                     for item in range(len(data))],
-                    dtype=DTYPE)
+                MatlabData = np.array([(np.array([data[item]['image']], dtype='U'),
+                                        np.array([data[item]['size']]),
+                                        boxitintoacell(data[item]['joints'])) for item in range(len(data))],
+                                      dtype=DTYPE)
 
-                sio.savemat(os.path.join(project_path,datafilename), {'dataset': MatlabData})
+                sio.savemat(os.path.join(project_path, datafilename), {'dataset': MatlabData})
 
                 ################################################################################
                 # Creating file structure for training &
                 # Test files as well as pose_yaml files (containing training and testing information)
                 #################################################################################
 
-                modelfoldername=auxiliaryfunctions.GetModelFolder(trainFraction,shuffle,cfg)
-                auxiliaryfunctions.attempttomakefolder(Path(config).parents[0] / modelfoldername,recursive=True)
-                auxiliaryfunctions.attempttomakefolder(str(Path(config).parents[0] / modelfoldername)+ '/'+ '/train')
-                auxiliaryfunctions.attempttomakefolder(str(Path(config).parents[0] / modelfoldername)+ '/'+ '/test')
+                modelfoldername=auxiliaryfunctions.GetModelFolder(trainFraction, shuffle, cfg)
+                auxiliaryfunctions.attempttomakefolder(Path(config).parents[0] / modelfoldername, recursive=True)
+                auxiliaryfunctions.attempttomakefolder(str(Path(config).parents[0] / modelfoldername)+ '/' + '/train')
+                auxiliaryfunctions.attempttomakefolder(str(Path(config).parents[0] / modelfoldername)+ '/' + '/test')
 
-                path_train_config = str(os.path.join(cfg['project_path'],Path(modelfoldername),'train','pose_cfg.yaml'))
-                path_test_config = str(os.path.join(cfg['project_path'],Path(modelfoldername),'test','pose_cfg.yaml'))
+                path_train_config = str(os.path.join(cfg['project_path'], Path(modelfoldername), 'train', 'pose_cfg.yaml'))
+                path_test_config = str(os.path.join(cfg['project_path'], Path(modelfoldername), 'test', 'pose_cfg.yaml'))
                 #str(cfg['proj_path']+'/'+Path(modelfoldername) / 'test'  /  'pose_cfg.yaml')
 
                 items2change = {
@@ -639,11 +633,9 @@ def create_training_dataset(config,num_shuffles=1,Shuffles=None,windows2linux=Fa
 
                 defaultconfigfile = str(Path(deeplabcut.__file__).parents[0] / 'pose_cfg.yaml')
 
-                trainingdata = MakeTrain_pose_yaml(items2change,path_train_config,defaultconfigfile)
-                keys2save = [
-                    "dataset", "num_joints", "all_joints", "all_joints_names",
-                    "net_type", 'init_weights', 'global_scale', 'location_refinement',
-                    'locref_stdev'
-                ]
-                MakeTest_pose_yaml(trainingdata, keys2save,path_test_config)
+                trainingdata = MakeTrain_pose_yaml(items2change, path_train_config, defaultconfigfile)
+                keys2save = ["dataset", "num_joints", "all_joints", "all_joints_names",
+                             "net_type", "init_weights", "global_scale", "location_refinement",
+                             "locref_stdev"]
+                MakeTest_pose_yaml(trainingdata, keys2save, path_test_config)
                 print("The training dataset is successfully created. Use the function 'train_network' to start training. Happy training!")
