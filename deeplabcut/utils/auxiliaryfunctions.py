@@ -10,6 +10,7 @@ import os, pickle, yaml
 import pandas as pd
 from pathlib import Path
 import numpy as np
+import shutil
 
 import ruamel.yaml
 
@@ -105,7 +106,7 @@ def write_plainconfig(configname,cfg):
     with open(str(configname), 'w') as ymlfile:
                 yaml.dump(cfg, ymlfile,default_flow_style=False)
 
-def attempttomakefolder(foldername, recursive=False):
+def attempttomakefolder(foldername, recursive=False, userfeedback=False):
     ''' Attempts to create a folder with specified name. Does nothing if it already exists. '''
 
     try:
@@ -115,6 +116,16 @@ def attempttomakefolder(foldername, recursive=False):
 
     if os.path.isdir(foldername):
         print(foldername, " already exists!")
+        if userfeedback:
+            print(f"Delete and rewrite folder \"{foldername}\" and all its files? **This action cannot be undone.**\n")
+            askuser = input("yes/no").lower()
+            if askuser == "yes" or askuser == "y" or askuser == "ja" or askuser == "ha":
+                print(f'Overwrite existing folder: "{foldername}"')
+                shutil.rmtree(foldername)
+                if recursive:
+                    os.makedirs(foldername)
+                else:
+                    os.mkdir(foldername)
     else:
         if recursive:
             os.makedirs(foldername)

@@ -110,7 +110,7 @@ def RunTrajectoryAnalysis(video, basefolder, scorer, videofolder, cfg, showfigur
     vname = str(Path(video).stem)
     auxiliaryfunctions.attempttomakefolder(os.path.join(basefolder,'plot-poses'))
     tmpfolder = os.path.join(basefolder, 'plot-poses', vname)
-    auxiliaryfunctions.attempttomakefolder(tmpfolder)
+    auxiliaryfunctions.attempttomakefolder(tmpfolder, userfeedback=True)
 
     print("Loading ", video, "and data.")
     dataname = str(Path(video).stem) + scorer + '.h5'
