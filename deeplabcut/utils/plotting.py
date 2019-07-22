@@ -110,7 +110,9 @@ def RunTrajectoryAnalysis(video, basefolder, scorer, videofolder, cfg, showfigur
     vname = str(Path(video).stem)
     auxiliaryfunctions.attempttomakefolder(os.path.join(basefolder,'plot-poses'))
     tmpfolder = os.path.join(basefolder, 'plot-poses', vname)
-    auxiliaryfunctions.attempttomakefolder(tmpfolder, userfeedback=True)
+    if auxiliaryfunctions.attempttomakefolder(tmpfolder, userfeedback=True) == -1:
+        print("Overwrite cancelled.")
+        return
 
     print("Loading ", video, "and data.")
     dataname = str(Path(video).stem) + scorer + '.h5'

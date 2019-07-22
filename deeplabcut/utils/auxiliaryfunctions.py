@@ -126,6 +126,8 @@ def attempttomakefolder(foldername, recursive=False, userfeedback=False):
                     os.makedirs(foldername)
                 else:
                     os.mkdir(foldername)
+            else:
+                return -1
     else:
         if recursive:
             os.makedirs(foldername)
